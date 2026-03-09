@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>root@adriansah:~$</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --bg:#0e1014;
+  --bg2:#13161a;
+  --bg3:#1a1d22;
+  --border:#252830;
+  --green:#4ade80;
+  --cyan:#67e8f9;
+  --muted:#505662;
+  --white:#dde1e9;
+  --soft:#8891a4;
+  --yellow:#fbbf24;
+  --purple:#a78bfa;
+  --red:#f87171;
+}
+
+html,body{
+  height:100%;
+  overflow:hidden;
+}
+
+body{
+  background:var(--bg);
+  color:var(--white);
+  font-family:'JetBrains Mono',monospace;
+  font-size:12.5px;
+  line-height:1.75;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:40px 20px;
+}
+
+body::before{
+  content:'';
+  position:fixed;
+  inset:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.05) 3px,rgba(0,0,0,0.05) 4px);
+  pointer-events:none;
+  z-index:999;
+}
+
+.window{
+  width:100%;
+  max-width:620px;
+  background:#010f00;
+  border:1px solid var(--border);
+  border-radius:9px;
+  overflow:hidden;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.03),
+    0 40px 100px rgba(0,0,0,0.6),
+    0 0 60px rgba(74,222,128,0.04);
+  animation:appear .4s ease both;
+  display:flex;
+  flex-direction:column;
+  max-height:90vh;
+}
+
+.bar{
+  background:var(--bg3);
+  border-bottom:1px solid var(--border);
+  padding:11px 16px;
+  display:flex;
+  align-items:center;
+  gap:7px;
+  user-select:none;
+  flex-shrink:0;
+}
+
+.dot{width:11px;height:11px;border-radius:50%}
+.dot.r{background:#ff5f57}
+.dot.y{background:#febc2e}
+.dot.g{background:#28c840}
+
+.bar-title{
+  margin:0 auto;
+  transform:translateX(-19px);
+  font-size:11px;
+  color:var(--white);
+  letter-spacing:.05em;
+}
+
+.term{
+  padding:28px 30px 20px;
+  overflow-y:auto;
+  flex:1;
+  scroll-behavior:smooth;
+}
+
+.term::-webkit-scrollbar{width:4px}
+.term::-webkit-scrollbar-track{background:transparent}
+.term::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+.sec{visibility:hidden;opacity:0}
+
+.login-block{margin-bottom:16px}
+.login-line{display:flex;align-items:baseline;margin-bottom:2px}
+.login-label{color:var(--soft);margin-right:6px}
+.login-input{color:var(--white)}
+.login-input.dim{color:var(--muted);letter-spacing:2px}
+.login-result{color:var(--green);font-size:11.5px;margin-top:4px;margin-bottom:2px}
+
+.header{
+  border-left:2px solid var(--green);
+  padding:14px 16px;
+  margin-bottom:28px;
+  background:rgba(0,32,12,0.6);
+  border-radius:0 5px 5px 0;
+}
+
+.ascii{
+  font-size:9px;
+  line-height:1.25;
+  color:var(--green);
+  white-space:pre;
+  overflow:hidden;
+}
+
+.block{margin-bottom:20px}
+
+.prompt{
+  display:flex;
+  align-items:baseline;
+  margin-bottom:7px;
+}
+
+.p-user{color:var(--green)}
+.p-at{color:var(--muted)}
+.p-host{color:var(--cyan)}
+.p-colon{color:var(--muted)}
+.p-path{color:var(--purple)}
+.p-sym{color:var(--yellow);margin:0 6px 0 2px}
+.p-typed{color:var(--white)}
+
+.tcaret{
+  display:inline-block;
+  width:7px;
+  height:13px;
+  background:var(--green);
+  vertical-align:middle;
+  margin-left:1px;
+  animation:blink 1s step-end infinite;
+}
+
+.out{visibility:hidden;opacity:0}
+
+.row{
+  display:grid;
+  grid-template-columns:100px 1fr;
+  column-gap:10px;
+  padding:2.5px 0;
+}
+
+.k{color:var(--soft)}
+.v{color:var(--white)}
+.v.green{color:var(--green)}
+.v a{color:var(--cyan);text-decoration:none}
+.v a:hover{text-decoration:underline}
+
+/* ── Interactive zone ── */
+#interactive-zone{
+  margin-top:8px;
+  display:none;
+}
+
+.chat-history{
+  margin-bottom:8px;
+}
+
+.chat-entry{
+  margin-bottom:14px;
+  animation:pop .2s ease both;
+}
+
+.chat-prompt{
+  display:flex;
+  align-items:baseline;
+  margin-bottom:4px;
+}
+
+.chat-input-text{
+  color:var(--white);
+  word-break:break-word;
+}
+
+.chat-response{
+  padding-left:0;
+  color:var(--soft);
+  border-left:2px solid var(--border);
+  padding-left:10px;
+  margin-top:4px;
+  white-space:pre-wrap;
+  word-break:break-word;
+  line-height:1.8;
+}
+
+.chat-response.ai{color:var(--cyan)}
+.chat-response.error{color:var(--red)}
+.chat-response.thinking{
+  color:var(--muted);
+  font-style:italic;
+}
+
+.thinking-dots::after{
+  content:'';
+  animation:dots 1.2s steps(4,end) infinite;
+}
+
+@keyframes dots{
+  0%{content:''}
+  25%{content:'.'}
+  50%{content:'..'}
+  75%{content:'...'}
+  100%{content:''}
+}
+
+/* Active input line */
+.input-line{
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+
+.input-line .prompt-prefix{
+  display:flex;
+  align-items:baseline;
+  flex-shrink:0;
+}
+
+#user-input{
+  background:transparent;
+  border:none;
+  outline:none;
+  color:var(--white);
+  font-family:'JetBrains Mono',monospace;
+  font-size:12.5px;
+  flex:1;
+  caret-color:var(--green);
+  min-width:0;
+}
+
+#user-input::placeholder{
+  color:var(--muted);
+}
+
+/* API key setup banner */
+.api-notice{
+  background:rgba(251,191,36,0.07);
+  border:1px solid rgba(251,191,36,0.2);
+  border-radius:5px;
+  padding:10px 14px;
+  margin-bottom:16px;
+  font-size:11px;
+  color:var(--yellow);
+  display:none;
+}
+
+.api-notice a{color:var(--cyan);text-decoration:underline}
+
+.statusbar{
+  background:var(--bg3);
+  border-top:1px solid var(--border);
+  padding:7px 16px;
+  display:flex;
+  justify-content:space-between;
+  font-size:10.5px;
+  color:var(--muted);
+  flex-shrink:0;
+}
+
+.statusbar .on{color:var(--green)}
+.statusbar .ai-status{color:var(--cyan)}
+.statusbar .ai-status.off{color:var(--muted)}
+
+#bg{
+  position:fixed;
+  top:0;left:0;
+  width:100%;height:100%;
+  z-index:-1;
+  pointer-events:none;
+  opacity:0.7;
+}
+
+@keyframes appear{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pop{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+</style>
+</head>
+<body>
+<canvas id="bg"></canvas>
+<div class="window">
+
+  <div class="bar">
+    <div class="dot r"></div>
+    <div class="dot y"></div>
+    <div class="dot g"></div>
+    <div class="bar-title">root@adriansah: ~</div>
+  </div>
+
+  <div class="term" id="term">
+
+    <div class="sec login-block" id="s-login">
+      <div class="login-line">
+        <span class="login-label">Debian GNU/Linux &mdash; login:</span>
+        <span class="p-typed" id="t-user"></span><span class="tcaret" id="c-user"></span>
+      </div>
+      <div class="login-line" id="pass-line" style="visibility:hidden;opacity:0">
+        <span class="login-label">Password:</span>
+        <span class="login-input dim" id="t-pass"></span><span class="tcaret" id="c-pass"></span>
+      </div>
+      <div class="login-result" id="t-auth" style="visibility:hidden;opacity:0"></div>
+    </div>
+
+    <div class="sec header" id="s-header">
+      <div class="ascii"> ____                     _     _ _
+|  _ \ ___ _ __   __ _| | __| (_)
+| |_) / _ \ '_ \ / _` | |/ _` | |
+|  _ <  __/ | | | (_| | | (_| | |
+|_| \_\___|_| |_|\__,_|_|\__,_|_|</div>
+    </div>
+
+    <div class="sec block" id="s-whoami">
+      <div class="prompt">
+        <span class="p-user">root</span><span class="p-at">@</span><span class="p-host">adriansah</span><span class="p-colon">:</span><span class="p-path">~</span><span class="p-sym">$</span>
+        <span class="p-typed" id="t-whoami"></span><span class="tcaret" id="c-whoami"></span>
+      </div>
+      <div class="out" id="o-whoami">
+        <div class="row"><span class="k">name</span><span class="v green">Renaldi Adriansah</span></div>
+        <div class="row"><span class="k">based</span><span class="v">Central Java, Indonesia</span></div>
+      </div>
+    </div>
+
+    <div class="sec block" id="s-business">
+      <div class="prompt">
+        <span class="p-user">root</span><span class="p-at">@</span><span class="p-host">adriansah</span><span class="p-colon">:</span><span class="p-path">~</span><span class="p-sym">$</span>
+        <span class="p-typed" id="t-business"></span><span class="tcaret" id="c-business"></span>
+      </div>
+      <div class="out" id="o-business">
+        <div class="row"><span class="k">KiosWeb ID</span><span class="v">Website Development</span></div>
+        <div class="row"><span class="k">KiosPay Co</span><span class="v">Payment Gateway</span></div>
+      </div>
+    </div>
+
+    <div class="sec block" id="s-contact">
+      <div class="prompt">
+        <span class="p-user">root</span><span class="p-at">@</span><span class="p-host">adriansah</span><span class="p-colon">:</span><span class="p-path">~</span><span class="p-sym">$</span>
+        <span class="p-typed" id="t-contact"></span><span class="tcaret" id="c-contact"></span>
+      </div>
+      <div class="out" id="o-contact">
+        <div class="row"><span class="k">email</span><span class="v"><a href="mailto:hi@adriansah.net">hi@adriansah.net</a></span></div>
+      </div>
+    </div>
+
+    <!-- Interactive terminal section -->
+    <div id="interactive-zone">
+      <div class="api-notice" id="api-notice">
+        ⚠ DeepSeek API key not set. Open browser console and run:
+        <code>setApiKey('sk-your-key-here')</code>
+        — or set <strong>DEEPSEEK_API_KEY</strong> env var in CF Pages.
+      </div>
+
+      <div class="chat-history" id="chat-history"></div>
+
+      <div class="input-line" id="input-line">
+        <div class="prompt-prefix">
+          <span class="p-user">root</span><span class="p-at">@</span><span class="p-host">adriansah</span><span class="p-colon">:</span><span class="p-path">~</span><span class="p-sym">$</span>
+        </div>
+        <input type="text" id="user-input" autocomplete="off" spellcheck="false" placeholder="type a message…" />
+      </div>
+    </div>
+
+  </div>
+
+  <div class="statusbar">
+    <span><span class="on">&#9679;</span>&nbsp;Normal &nbsp;&middot;&nbsp; bash</span>
+    <span id="ai-status-label" class="ai-status off">⬡ DeepSeek offline</span>
+    <span>UTF-8</span>
+  </div>
+
+</div>
+
+<script>
+/* ─────────────────────────────────────────────
+   CONFIG — API key resolution order:
+   1. window.__DEEPSEEK_KEY (injected by CF Pages Function / env var)
+   2. localStorage key 'ds_api_key' (set via setApiKey() in console)
+   3. Prompt user on first message
+───────────────────────────────────────────── */
+
+let DEEPSEEK_API_KEY = window.__DEEPSEEK_KEY || localStorage.getItem('ds_api_key') || '';
+let conversationHistory = [];
+
+window.setApiKey = function(key) {
+  DEEPSEEK_API_KEY = key;
+  localStorage.setItem('ds_api_key', key);
+  updateAiStatus(true);
+  document.getElementById('api-notice').style.display = 'none';
+  console.log('%c✓ DeepSeek API key saved', 'color:#4ade80;font-weight:bold');
+};
+
+window.clearApiKey = function() {
+  DEEPSEEK_API_KEY = '';
+  localStorage.removeItem('ds_api_key');
+  updateAiStatus(false);
+  console.log('%c✓ API key cleared', 'color:#f87171;font-weight:bold');
+};
+
+function updateAiStatus(on) {
+  const el = document.getElementById('ai-status-label');
+  if (on) {
+    el.textContent = '⬡ DeepSeek online';
+    el.className = 'ai-status';
+  } else {
+    el.textContent = '⬡ DeepSeek offline';
+    el.className = 'ai-status off';
+  }
+}
+
+if (DEEPSEEK_API_KEY) updateAiStatus(true);
+
+/* ─── Typing animation helpers ─── */
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+function reveal(el) {
+  el.style.visibility = 'visible';
+  el.style.opacity = '1';
+  el.style.animation = 'pop .25s ease both';
+}
+
+async function type(outEl, caretEl, text, speed = 70) {
+  outEl.textContent = '';
+  for (let i = 0; i < text.length; i++) {
+    outEl.textContent += text[i];
+    await sleep(speed + Math.random() * 30 - 15);
+  }
+  caretEl.style.display = 'none';
+}
+
+async function typeMasked(outEl, caretEl, count, speed = 120) {
+  outEl.textContent = '';
+  for (let i = 0; i < count; i++) {
+    outEl.textContent += '●';
+    await sleep(speed + Math.random() * 40);
+  }
+  caretEl.style.display = 'none';
+}
+
+function showOut(el) {
+  el.style.visibility = 'visible';
+  el.style.opacity = '1';
+  el.style.animation = 'pop .2s ease both';
+}
+
+/* ─── Intro sequence ─── */
+async function runIntro() {
+  await sleep(500);
+  reveal(document.getElementById('s-login'));
+  await sleep(400);
+  await type(document.getElementById('t-user'), document.getElementById('c-user'), 'root', 90);
+  await sleep(350);
+  reveal(document.getElementById('pass-line'));
+  await sleep(300);
+  await typeMasked(document.getElementById('t-pass'), document.getElementById('c-pass'), 6, 130);
+  await sleep(500);
+
+  const auth = document.getElementById('t-auth');
+  auth.textContent = 'Login successful. Welcome, root.';
+  reveal(auth);
+  await sleep(900);
+  document.getElementById('s-login').style.display = 'none';
+
+  reveal(document.getElementById('s-header'));
+  await sleep(700);
+
+  reveal(document.getElementById('s-whoami'));
+  await sleep(200);
+  await type(document.getElementById('t-whoami'), document.getElementById('c-whoami'), 'whoami');
+  await sleep(200);
+  showOut(document.getElementById('o-whoami'));
+  await sleep(700);
+
+  reveal(document.getElementById('s-business'));
+  await sleep(200);
+  await type(document.getElementById('t-business'), document.getElementById('c-business'), 'ls business/');
+  await sleep(200);
+  showOut(document.getElementById('o-business'));
+  await sleep(700);
+
+  reveal(document.getElementById('s-contact'));
+  await sleep(200);
+  await type(document.getElementById('t-contact'), document.getElementById('c-contact'), 'cat contact.txt');
+  await sleep(200);
+  showOut(document.getElementById('o-contact'));
+  await sleep(600);
+
+  /* Show interactive zone */
+  const zone = document.getElementById('interactive-zone');
+  zone.style.display = 'block';
+  zone.style.animation = 'pop .3s ease both';
+
+  if (!DEEPSEEK_API_KEY) {
+    document.getElementById('api-notice').style.display = 'block';
+  }
+
+  document.getElementById('user-input').focus();
+}
+
+/* ─── Chat with DeepSeek ─── */
+async function sendMessage(text) {
+  if (!text.trim()) return;
+
+  const history = document.getElementById('chat-history');
+  const inputEl = document.getElementById('user-input');
+  inputEl.disabled = true;
+
+  // Show user message
+  const entry = document.createElement('div');
+  entry.className = 'chat-entry';
+  entry.innerHTML = `
+    <div class="chat-prompt">
+      <span class="p-user">root</span><span class="p-at">@</span><span class="p-host">adriansah</span><span class="p-colon">:</span><span class="p-path">~</span><span class="p-sym">$</span>
+      <span class="chat-input-text">${escapeHtml(text)}</span>
+    </div>
+    <div class="chat-response thinking"><span class="thinking-dots">thinking</span></div>
+  `;
+  history.appendChild(entry);
+  scrollBottom();
+
+  const responseEl = entry.querySelector('.chat-response');
+
+  // Check for built-in commands
+  const lower = text.trim().toLowerCase();
+  if (lower === 'clear') {
+    history.innerHTML = '';
+    conversationHistory = [];
+    inputEl.disabled = false;
+    inputEl.value = '';
+    inputEl.focus();
+    return;
+  }
+  if (lower === 'help') {
+    responseEl.className = 'chat-response ai';
+    responseEl.textContent = `Available commands:\n  help        — show this message\n  clear       — clear chat history\n  whoami      — about this terminal\n  setkey KEY  — set DeepSeek API key\n\nOr just type anything to chat with DeepSeek AI.`;
+    inputEl.disabled = false;
+    inputEl.value = '';
+    inputEl.focus();
+    scrollBottom();
+    return;
+  }
+  if (lower.startsWith('setkey ')) {
+    const key = text.trim().slice(7).trim();
+    window.setApiKey(key);
+    responseEl.className = 'chat-response ai';
+    responseEl.textContent = '✓ API key saved.';
+    inputEl.disabled = false;
+    inputEl.value = '';
+    inputEl.focus();
+    scrollBottom();
+    return;
+  }
+
+  // Need API key
+  if (!DEEPSEEK_API_KEY) {
+    const key = prompt('Enter your DeepSeek API key:');
+    if (key && key.trim()) {
+      window.setApiKey(key.trim());
+    } else {
+      responseEl.className = 'chat-response error';
+      responseEl.textContent = 'Error: no API key. Run setApiKey(\'sk-...\') in console, or type: setkey sk-...';
+      inputEl.disabled = false;
+      inputEl.value = '';
+      inputEl.focus();
+      return;
+    }
+  }
+
+  // Add to history
+  conversationHistory.push({ role: 'user', content: text });
+
+  try {
+    const SYSTEM = `You are an AI assistant embedded in a hacker-style terminal portfolio for Renaldi Adriansah — a developer from Central Java, Indonesia who runs KiosWeb ID (web development) and KiosPay Co (payment gateway). Keep responses concise, helpful, and terminal-appropriate. Use plain text; avoid markdown headers or bullet symbols when possible. Contact: hi@adriansah.net`;
+    const fullMessages = [{ role:'system', content: SYSTEM }, ...conversationHistory];
+
+    // Try server-side CF Pages proxy first (key stays secret)
+    const useProxy = window.location.hostname !== 'localhost' && window.location.protocol !== 'file:';
+    let res;
+
+    if (useProxy) {
+      res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: fullMessages, max_tokens: 512 })
+      });
+      // If proxy returns 500 (key not configured), fall back to direct
+      if (res.status === 500) {
+        const errData = await res.json().catch(() => ({}));
+        if (errData?.error?.includes('not configured') && DEEPSEEK_API_KEY) {
+          res = null; // trigger direct fallback below
+        }
+      }
+    }
+
+    if (!res) {
+      // Direct fallback (uses localStorage key)
+      res = await fetch('https://api.deepseek.com/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${DEEPSEEK_API_KEY}`
+        },
+        body: JSON.stringify({ model:'deepseek-chat', messages: fullMessages, max_tokens:512, stream:false })
+      });
+    }
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err?.error?.message || `HTTP ${res.status}`);
+    }
+
+    const data = await res.json();
+    const reply = data.choices?.[0]?.message?.content || '(empty response)';
+    conversationHistory.push({ role: 'assistant', content: reply });
+
+    responseEl.className = 'chat-response ai';
+    await typeResponse(responseEl, reply);
+
+  } catch (err) {
+    responseEl.className = 'chat-response error';
+    responseEl.textContent = `Error: ${err.message}`;
+    conversationHistory.pop(); // remove failed user msg
+  }
+
+  inputEl.disabled = false;
+  inputEl.value = '';
+  inputEl.focus();
+  scrollBottom();
+}
+
+async function typeResponse(el, text) {
+  el.textContent = '';
+  for (let i = 0; i < text.length; i++) {
+    el.textContent += text[i];
+    if (i % 3 === 0) scrollBottom();
+    await sleep(8 + Math.random() * 6);
+  }
+  scrollBottom();
+}
+
+function escapeHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function scrollBottom() {
+  const term = document.getElementById('term');
+  term.scrollTop = term.scrollHeight;
+}
+
+/* Input handling */
+document.getElementById('user-input').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') {
+    const val = this.value.trim();
+    if (val) sendMessage(val);
+    else { this.value = ''; }
+  }
+});
+
+runIntro();
+
+/* ─── Background canvas ─── */
+const CONFIG = {
+  gridSize    : 70,
+  pulseLength : 90,
+  pulseWidth  : 2,
+  lineRatio   : 0.25,
+  speedMin    : 0.5,
+  speedMax    : 1.2,
+  colorBase   : "74,222,128",
+  gridAlpha   : 0.06,
+  dotRadius   : 1.5,
+};
+
+const canvas = document.getElementById("bg");
+const ctx    = canvas.getContext("2d");
+let w, h, pulses = [];
+
+function resize() {
+  w = canvas.width  = window.innerWidth;
+  h = canvas.height = window.innerHeight;
+  initPulses();
+}
+
+function initPulses() {
+  pulses = [];
+  const { gridSize, lineRatio, speedMin, speedMax } = CONFIG;
+  const hSlots = Math.floor(h / gridSize);
+  const vSlots = Math.floor(w / gridSize);
+  const total  = Math.floor((hSlots + vSlots) * lineRatio);
+  const usedH = new Set(), usedV = new Set();
+  for (let i = 0; i < total; i++) {
+    const goH = Math.random() > 0.5 && usedH.size < hSlots;
+    if (goH) {
+      const row = uniqueSlot(usedH, hSlots);
+      pulses.push({ type:'h', y:row*gridSize, x:-CONFIG.pulseLength, speed:speedMin+Math.random()*(speedMax-speedMin) });
+    } else {
+      const col = uniqueSlot(usedV, vSlots);
+      pulses.push({ type:'v', x:col*gridSize, y:-CONFIG.pulseLength, speed:speedMin+Math.random()*(speedMax-speedMin) });
+    }
+  }
+}
+
+function uniqueSlot(used, max) {
+  let slot;
+  do { slot = Math.floor(Math.random() * max); } while (used.has(slot));
+  used.add(slot);
+  return slot;
+}
+
+function drawGrid() {
+  const { gridSize, colorBase, gridAlpha, dotRadius } = CONFIG;
+  ctx.strokeStyle = `rgba(${colorBase},${gridAlpha})`;
+  ctx.lineWidth = 1;
+  for (let x = 0; x <= w; x += gridSize) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,h); ctx.stroke(); }
+  for (let y = 0; y <= h; y += gridSize) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(w,y); ctx.stroke(); }
+  ctx.fillStyle = `rgba(${colorBase},0.12)`;
+  for (let x = 0; x <= w; x += gridSize)
+    for (let y = 0; y <= h; y += gridSize) { ctx.beginPath(); ctx.arc(x,y,dotRadius,0,Math.PI*2); ctx.fill(); }
+}
+
+function drawPulses() {
+  const { gridSize, pulseLength, pulseWidth, colorBase } = CONFIG;
+  pulses.forEach(p => {
+    ctx.lineWidth = pulseWidth;
+    if (p.type === "h") {
+      const head = p.x, tail = head - pulseLength;
+      const g = ctx.createLinearGradient(tail,p.y,head,p.y);
+      g.addColorStop(0,`rgba(${colorBase},0)`); g.addColorStop(0.4,`rgba(${colorBase},0.15)`); g.addColorStop(1,`rgba(${colorBase},0.9)`);
+      ctx.strokeStyle = g; ctx.beginPath(); ctx.moveTo(tail,p.y); ctx.lineTo(head,p.y); ctx.stroke();
+      p.x += p.speed;
+      if (p.x > w + pulseLength) { p.x = -pulseLength; p.y = Math.floor(Math.random()*(h/gridSize))*gridSize; }
+    } else {
+      const head = p.y, tail = head - pulseLength;
+      const g = ctx.createLinearGradient(p.x,tail,p.x,head);
+      g.addColorStop(0,`rgba(${colorBase},0)`); g.addColorStop(0.4,`rgba(${colorBase},0.15)`); g.addColorStop(1,`rgba(${colorBase},0.9)`);
+      ctx.strokeStyle = g; ctx.beginPath(); ctx.moveTo(p.x,tail); ctx.lineTo(p.x,head); ctx.stroke();
+      p.y += p.speed;
+      if (p.y > h + pulseLength) { p.y = -pulseLength; p.x = Math.floor(Math.random()*(w/gridSize))*gridSize; }
+    }
+  });
+}
+
+function drawVignette() {
+  const r = ctx.createRadialGradient(w/2,h/2,h*0.2,w/2,h/2,h*0.85);
+  r.addColorStop(0,"rgba(10,15,10,0)"); r.addColorStop(1,"rgba(10,15,10,0.6)");
+  ctx.fillStyle = r; ctx.fillRect(0,0,w,h);
+}
+
+function animate() { ctx.clearRect(0,0,w,h); drawGrid(); drawPulses(); drawVignette(); requestAnimationFrame(animate); }
+window.addEventListener("resize", resize);
+resize(); animate();
+</script>
+</body>
+</html>
