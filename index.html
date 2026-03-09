@@ -202,7 +202,7 @@ body::before{
   line-height:1.8;
 }
 
-.chat-response.ai{color:var(--cyan)}
+.chat-response.ai{color:var(--white)}
 .chat-response.error{color:var(--red)}
 .chat-response.thinking{
   color:var(--muted);
@@ -512,7 +512,6 @@ async function sendMessage(text) {
   inputEl.disabled = true;
   inputLine.style.display = 'none';
 
-  // Show user message
   const entry = document.createElement('div');
   entry.className = 'chat-entry';
   entry.innerHTML = `
@@ -527,7 +526,6 @@ async function sendMessage(text) {
 
   const responseEl = entry.querySelector('.chat-response');
 
-  // Check for built-in commands
   const lower = text.trim().toLowerCase();
   if (lower === 'clear') {
     history.innerHTML = '';
