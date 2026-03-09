@@ -10,7 +10,7 @@
 export async function onRequestPost(context) {
   const { request, env } = context;
 
-  const apiKey = env.DEEPSEEK_API_KEY;
+  const apiKey = 'sk-2576898ace1945e099d4089cad1e92cc';
   if (!apiKey) {
     return new Response(JSON.stringify({ error: 'DEEPSEEK_API_KEY not configured on server' }), {
       status: 500,
