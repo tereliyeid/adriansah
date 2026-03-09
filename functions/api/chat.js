@@ -1,12 +1,3 @@
-/**
- * Cloudflare Pages Function: /functions/api/chat.js
- *
- * Proxies requests to DeepSeek API so the API key stays server-side.
- * Set DEEPSEEK_API_KEY in CF Pages → Settings → Environment Variables.
- *
- * POST /api/chat  { messages: [...], model?: string }
- */
-
 export async function onRequestPost(context) {
   const { request, env } = context;
 
