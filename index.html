@@ -196,8 +196,6 @@ body::before{
 .chat-response{
   padding-left:0;
   color:var(--soft);
-  border-left:2px solid var(--border);
-  padding-left:10px;
   margin-top:4px;
   white-space:pre-wrap;
   word-break:break-word;
@@ -383,7 +381,6 @@ body::before{
 
   <div class="statusbar">
     <span><span class="on">&#9679;</span>&nbsp;Normal &nbsp;&middot;&nbsp; bash</span>
-    <span id="ai-status-label" class="ai-status off">AI offline</span>
     <span>UTF-8</span>
   </div>
 
@@ -422,7 +419,6 @@ function updateAiStatus(on) {
 
 if (DEEPSEEK_API_KEY) updateAiStatus(true);
 
-/* ─── Typing animation helpers ─── */
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 function reveal(el) {
@@ -455,7 +451,6 @@ function showOut(el) {
   el.style.animation = 'pop .2s ease both';
 }
 
-/* ─── Intro sequence ─── */
 async function runIntro() {
   await sleep(500);
   reveal(document.getElementById('s-login'));
@@ -497,7 +492,6 @@ async function runIntro() {
   showOut(document.getElementById('o-contact'));
   await sleep(600);
 
-  /* Show interactive zone */
   const zone = document.getElementById('interactive-zone');
   zone.style.display = 'block';
   zone.style.animation = 'pop .3s ease both';
@@ -509,7 +503,6 @@ async function runIntro() {
   document.getElementById('user-input').focus();
 }
 
-/* ─── Chat with DeepSeek ─── */
 async function sendMessage(text) {
   if (!text.trim()) return;
 
@@ -527,7 +520,7 @@ async function sendMessage(text) {
       <span class="p-user">root</span><span class="p-at">@</span><span class="p-host">adriansah</span><span class="p-colon">:</span><span class="p-path">~</span><span class="p-sym">$</span>
       <span class="chat-input-text">${escapeHtml(text)}</span>
     </div>
-    <div class="chat-response thinking"><span class="thinking-dots">thinking</span></div>
+    <div class="chat-response thinking"><span class="thinking-dots"></span></div>
   `;
   history.appendChild(entry);
   scrollBottom();
