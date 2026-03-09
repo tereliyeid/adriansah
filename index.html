@@ -383,19 +383,13 @@ body::before{
 
   <div class="statusbar">
     <span><span class="on">&#9679;</span>&nbsp;Normal &nbsp;&middot;&nbsp; bash</span>
-    <span id="ai-status-label" class="ai-status off">⬡ DeepSeek offline</span>
+    <span id="ai-status-label" class="ai-status off">AI offline</span>
     <span>UTF-8</span>
   </div>
 
 </div>
 
 <script>
-/* ─────────────────────────────────────────────
-   CONFIG — API key resolution order:
-   1. window.__DEEPSEEK_KEY (injected by CF Pages Function / env var)
-   2. localStorage key 'ds_api_key' (set via setApiKey() in console)
-   3. Prompt user on first message
-───────────────────────────────────────────── */
 
 let DEEPSEEK_API_KEY = window.__DEEPSEEK_KEY || localStorage.getItem('ds_api_key') || '';
 let conversationHistory = [];
@@ -418,10 +412,10 @@ window.clearApiKey = function() {
 function updateAiStatus(on) {
   const el = document.getElementById('ai-status-label');
   if (on) {
-    el.textContent = '⬡ DeepSeek online';
+    el.textContent = 'AI online';
     el.className = 'ai-status';
   } else {
-    el.textContent = '⬡ DeepSeek offline';
+    el.textContent = 'AI offline';
     el.className = 'ai-status off';
   }
 }
@@ -521,7 +515,9 @@ async function sendMessage(text) {
 
   const history = document.getElementById('chat-history');
   const inputEl = document.getElementById('user-input');
+  const inputLine = document.getElementById('input-line');
   inputEl.disabled = true;
+  inputLine.style.display = 'none';
 
   // Show user message
   const entry = document.createElement('div');
@@ -569,7 +565,6 @@ async function sendMessage(text) {
     return;
   }
 
-  // Need API key
   if (!DEEPSEEK_API_KEY) {
     const key = prompt('Enter your DeepSeek API key:');
     if (key && key.trim()) {
@@ -584,14 +579,12 @@ async function sendMessage(text) {
     }
   }
 
-  // Add to history
   conversationHistory.push({ role: 'user', content: text });
 
   try {
     const SYSTEM = `You are an AI assistant embedded in a hacker-style terminal portfolio for Renaldi Adriansah — a developer from Central Java, Indonesia who runs KiosWeb ID (web development) and KiosPay Co (payment gateway). Keep responses concise, helpful, and terminal-appropriate. Use plain text; avoid markdown headers or bullet symbols when possible. Contact: hi@adriansah.net`;
     const fullMessages = [{ role:'system', content: SYSTEM }, ...conversationHistory];
 
-    // Try server-side CF Pages proxy first (key stays secret)
     const useProxy = window.location.hostname !== 'localhost' && window.location.protocol !== 'file:';
     let res;
 
@@ -601,17 +594,15 @@ async function sendMessage(text) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ messages: fullMessages, max_tokens: 512 })
       });
-      // If proxy returns 500 (key not configured), fall back to direct
       if (res.status === 500) {
         const errData = await res.json().catch(() => ({}));
         if (errData?.error?.includes('not configured') && DEEPSEEK_API_KEY) {
-          res = null; // trigger direct fallback below
+          res = null; 
         }
       }
     }
 
     if (!res) {
-      // Direct fallback (uses localStorage key)
       res = await fetch('https://api.deepseek.com/chat/completions', {
         method: 'POST',
         headers: {
@@ -637,13 +628,13 @@ async function sendMessage(text) {
   } catch (err) {
     responseEl.className = 'chat-response error';
     responseEl.textContent = `Error: ${err.message}`;
-    conversationHistory.pop(); // remove failed user msg
+    conversationHistory.pop(); 
   }
 
   inputEl.disabled = false;
   inputEl.value = '';
+  inputLine.style.display = 'flex';
   inputEl.focus();
-  scrollBottom();
 }
 
 async function typeResponse(el, text) {
@@ -665,7 +656,6 @@ function scrollBottom() {
   term.scrollTop = term.scrollHeight;
 }
 
-/* Input handling */
 document.getElementById('user-input').addEventListener('keydown', function(e) {
   if (e.key === 'Enter') {
     const val = this.value.trim();
@@ -676,7 +666,6 @@ document.getElementById('user-input').addEventListener('keydown', function(e) {
 
 runIntro();
 
-/* ─── Background canvas ─── */
 const CONFIG = {
   gridSize    : 70,
   pulseLength : 90,
